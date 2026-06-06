@@ -24,11 +24,11 @@ function LoginScreen({ onLogin }: { onLogin: () => void }): ReactNode {
   const [password, setPassword] = useState('')
   const [error, setError] = useState(false)
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError(false)
 
-    if (login(username, password)) {
+    if (await login(username, password)) {
       onLogin()
     } else {
       setError(true)

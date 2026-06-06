@@ -2,18 +2,15 @@
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 
-const VALID_USERNAME = 'zeel562'
-const VALID_PASSWORD = 'Z33l562!@'
-
 interface AuthState {
   user: string | null
-  login: (username: string, password: string) => boolean
+  login: (username: string, password: string) => Promise<boolean>
   logout: () => void
 }
 
 const AuthContext = createContext<AuthState>({
   user: null,
-  login: () => false,
+  login: async () => false,
   logout: () => {},
 })
 
@@ -27,13 +24,23 @@ export default function AuthProvider({ children }: { children: ReactNode }): Rea
     return sessionStorage.getItem('watchly_user')
   })
 
-  const login = useCallback((username: string, password: string): boolean => {
-    if (username === VALID_USERNAME && password === VALID_PASSWORD) {
-      sessionStorage.setItem('watchly_user', username)
-      setUser(username)
+  const login = useCallback(async (username: string, password: string): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      })
+
+      if (!res.ok) return false
+
+      const data = await res.json()
+      sessionStorage.setItem('watchly_user', data.user)
+      setUser(data.user)
       return true
+    } catch {
+      return false
     }
-    return false
   }, [])
 
   const logout = useCallback(() => {
