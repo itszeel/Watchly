@@ -1,19 +1,17 @@
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+@import 'tailwindcss';
+
+@theme {
+  --color-surface: #0f0f0f;
+  --color-surface-2: #1a1a1a;
+  --color-surface-3: #272727;
+  --color-subtle: #888;
+  --color-muted: #555;
+  --color-blue: #3ea6ff;
+  --color-green: #2ba640;
+  --color-text: #f1f1f1;
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-  background: #0f0f0f;
-  color: #f1f1f1;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #333 transparent;
 }

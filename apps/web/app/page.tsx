@@ -7,10 +7,18 @@ const VideoList = dynamic(() => import('./components/VideoList'), { ssr: false }
 
 export default function Home(): ReactNode {
   return (
-    <div className='min-h-screen bg-[#0f0f0f] text-[#f1f1f1]'>
-      <header className='sticky top-0 z-10 border-b border-[#272727] bg-[#0f0f0f]'>
-        <div className='mx-auto flex max-w-3xl items-center justify-between px-4 py-4'>
-          <h1 className='text-xl font-bold'>Watchly</h1>
+    <div className='bg-surface min-h-screen'>
+      <header className='border-surface-3 bg-surface/80 sticky top-0 z-10 border-b backdrop-blur-lg'>
+        <div className='mx-auto flex max-w-3xl items-center justify-between px-4 py-3'>
+          <div className='flex items-center gap-2.5'>
+            <div className='bg-blue/10 flex size-8 items-center justify-center rounded-lg'>
+              <svg className='text-blue size-5' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
+                <path strokeLinecap='round' strokeLinejoin='round' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                <path strokeLinecap='round' strokeLinejoin='round' d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+              </svg>
+            </div>
+            <h1 className='text-text text-lg font-bold'>Watchly</h1>
+          </div>
         </div>
       </header>
 
