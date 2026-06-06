@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import localFont from 'next/font/local'
 import ConvexClientProvider from './ConvexClientProvider'
+import AuthProvider from './components/AuthProvider'
 import PwaRegister from './components/PwaRegister'
 import './globals.css'
 
@@ -34,8 +35,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }): ReactNode {
   return (
     <html lang='en'>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ConvexClientProvider>{children}</ConvexClientProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} select-none`}>
+        <AuthProvider>
+          <ConvexClientProvider>{children}</ConvexClientProvider>
+        </AuthProvider>
         <PwaRegister />
       </body>
     </html>

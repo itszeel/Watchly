@@ -146,8 +146,8 @@ export default function VideoList({ source }: Props): ReactNode {
                       <FormatDate ts={video.addedAt} />
                     </span>
                   </div>
-                  <div className='flex items-center gap-1'>
-                    <button onClick={() => removeVideo({ videoId: video.videoId })} className='text-muted hover:bg-red/10 hover:text-red flex size-7 items-center justify-center rounded-full transition-all active:scale-90' title='Delete'>
+                  <div className='flex items-center gap-1.5'>
+                    <button onClick={() => removeVideo({ videoId: video.videoId })} className='text-muted hover:bg-red/15 hover:text-red flex size-7 items-center justify-center rounded-full bg-white/5 transition-all active:scale-90' title='Delete'>
                       <svg className='size-3.5' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2} strokeLinecap='round' strokeLinejoin='round'>
                         <polyline points='3 6 5 6 21 6' />
                         <path d='M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2' />

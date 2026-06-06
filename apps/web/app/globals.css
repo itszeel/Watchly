@@ -52,3 +52,11 @@ html {
   scrollbar-width: thin;
   scrollbar-color: #222 transparent;
 }
+
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
