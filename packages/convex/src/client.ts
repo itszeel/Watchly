@@ -11,7 +11,6 @@ export async function convexSave(
     title: string
     url: string
     source: 'browser_tab' | 'watch_later'
-    browser: 'chrome' | 'brave' | 'watch_later'
   }
 ): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,12 +42,22 @@ export async function convexListAll(c: ConvexHttpClient): Promise<any[]> {
 export async function convexSyncBrowserTabs(
   c: ConvexHttpClient,
   args: {
-    browser: 'chrome' | 'brave'
     tabs: { videoId: string; title: string; url: string }[]
   }
 ): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (c.mutation as any)('videos:syncBrowserTabs', args)
+}
+
+export async function convexBatchSave(
+  c: ConvexHttpClient,
+  args: {
+    videos: { videoId: string; title: string; url: string }[]
+    source: 'browser_tab' | 'watch_later'
+  }
+): Promise<{ added: number }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return await (c.mutation as any)('videos:batchSave', args)
 }
 
 export async function convexListBySource(

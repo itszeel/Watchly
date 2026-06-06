@@ -6,19 +6,12 @@ function extractVideoId(url: string): string | null {
   return match ? match[1] : null
 }
 
-function detectBrowser(): 'chrome' | 'brave' {
-  if (navigator.userAgent.includes('Brave')) return 'brave'
-  return 'chrome'
-}
-
 export default defineBackground(() => {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'GET_YOUTUBE_TABS') {
       chrome.tabs
         .query({ url: '*://www.youtube.com/watch*' })
         .then(async tabs => {
-          const browser = detectBrowser()
-
           const convexTabs = tabs
             .map(tab => {
               const videoId = extractVideoId(tab.url ?? '')
@@ -31,7 +24,7 @@ export default defineBackground(() => {
             })
             .filter((t): t is { videoId: string; title: string; url: string } => t !== null)
 
-          await convexSyncBrowserTabs({ browser, tabs: convexTabs })
+          await convexSyncBrowserTabs({ tabs: convexTabs })
 
           const allVideos = await convexListAll()
           const allVideosMap = new Map((allVideos as { videoId: string; status: string }[]).map(v => [v.videoId, v]))

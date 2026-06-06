@@ -1,17 +1,54 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-surface: #0f0f0f;
-  --color-surface-2: #1a1a1a;
-  --color-surface-3: #272727;
+  --color-surface: #070708;
+  --color-glass: rgba(255, 255, 255, 0.04);
+  --color-glass-hover: rgba(255, 255, 255, 0.08);
+  --color-glass-border: rgba(255, 255, 255, 0.06);
   --color-subtle: #888;
   --color-muted: #555;
   --color-blue: #3ea6ff;
   --color-green: #2ba640;
   --color-text: #f1f1f1;
+
+  --animate-fade-up: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-fade-in: fade-in 0.4s ease both;
+  --animate-scale-in: scale-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-spin-slow: spin 1.5s linear infinite;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 html {
   scrollbar-width: thin;
-  scrollbar-color: #333 transparent;
+  scrollbar-color: #222 transparent;
 }

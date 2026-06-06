@@ -1,13 +1,14 @@
 import { v } from 'convex/values'
 import { mutation, query } from './_generated/server'
 
+const sourceValidator = v.union(v.literal('browser_tab'), v.literal('watch_later'))
+
 export const save = mutation({
   args: {
     videoId: v.string(),
     title: v.string(),
     url: v.string(),
-    source: v.union(v.literal('browser_tab'), v.literal('watch_later')),
-    browser: v.union(v.literal('chrome'), v.literal('brave'), v.literal('watch_later')),
+    source: sourceValidator,
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -21,7 +22,6 @@ export const save = mutation({
         title: args.title,
         url: args.url,
         source: args.source,
-        browser: args.browser,
         status: 'added',
         addedAt: Date.now(),
       })
@@ -65,7 +65,6 @@ export const remove = mutation({
 
 export const syncBrowserTabs = mutation({
   args: {
-    browser: v.union(v.literal('chrome'), v.literal('brave')),
     tabs: v.array(
       v.object({
         videoId: v.string(),
@@ -91,7 +90,6 @@ export const syncBrowserTabs = mutation({
           title: tab.title,
           url: tab.url,
           source: 'browser_tab',
-          browser: args.browser,
           status: 'added',
           addedAt: Date.now(),
         })
@@ -106,6 +104,43 @@ export const syncBrowserTabs = mutation({
   },
 })
 
+export const batchSave = mutation({
+  args: {
+    videos: v.array(
+      v.object({
+        videoId: v.string(),
+        title: v.string(),
+        url: v.string(),
+      })
+    ),
+    source: sourceValidator,
+  },
+  handler: async (ctx, args) => {
+    let added = 0
+
+    for (const video of args.videos) {
+      const existing = await ctx.db
+        .query('videos')
+        .withIndex('by_videoId', q => q.eq('videoId', video.videoId))
+        .first()
+
+      if (!existing) {
+        await ctx.db.insert('videos', {
+          videoId: video.videoId,
+          title: video.title,
+          url: video.url,
+          source: args.source,
+          status: 'added',
+          addedAt: Date.now(),
+        })
+        added++
+      }
+    }
+
+    return { added }
+  },
+})
+
 export const list = query({
   handler: async ctx => {
     return await ctx.db.query('videos').order('desc').collect()
@@ -113,13 +148,17 @@ export const list = query({
 })
 
 export const listBySource = query({
-  args: { source: v.union(v.literal('browser_tab'), v.literal('watch_later')) },
+  args: { source: sourceValidator },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const videos = await ctx.db
       .query('videos')
       .filter(q => q.eq(q.field('source'), args.source))
-      .order('desc')
       .collect()
+
+    return videos.sort((a, b) => {
+      if (a.status !== b.status) return a.status === 'added' ? -1 : 1
+      return b._creationTime - a._creationTime
+    })
   },
 })
 

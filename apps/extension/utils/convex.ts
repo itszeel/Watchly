@@ -21,7 +21,7 @@ export async function convexListAll(): Promise<any[]> {
   return await cla(client)
 }
 
-export async function convexSyncBrowserTabs(args: { browser: 'chrome' | 'brave'; tabs: { videoId: string; title: string; url: string }[] }): Promise<void> {
+export async function convexSyncBrowserTabs(args: { tabs: { videoId: string; title: string; url: string }[] }): Promise<void> {
   if (!client) return
   await csbt(client, args)
 }
