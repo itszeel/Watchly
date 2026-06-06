@@ -1,4 +1,4 @@
-import type { VideoStatus } from '../utils/storage'
+import type { VideoStatus } from '../utils/types'
 
 export default defineContentScript({
   matches: ['*://www.youtube.com/*'],

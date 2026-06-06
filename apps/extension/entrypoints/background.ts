@@ -1,4 +1,4 @@
-import { getStoredVideos, getStoredVideo, saveVideo, updateVideoStatus, type StoredVideo } from '../utils/storage'
+import { convexSyncBrowserTabs, convexGetByVideoId, convexListAll } from '../utils/convex'
 import type { YouTubeTabInfo } from '../utils/types'
 
 function extractVideoId(url: string): string | null {
@@ -6,52 +6,51 @@ function extractVideoId(url: string): string | null {
   return match ? match[1] : null
 }
 
+function detectBrowser(): 'chrome' | 'brave' {
+  if (navigator.userAgent.includes('Brave')) return 'brave'
+  return 'chrome'
+}
+
 export default defineBackground(() => {
-  async function pushStorageUpdate() {
-    const tabs = await chrome.tabs.query({ url: '*://www.youtube.com/*' })
-    for (const tab of tabs) {
-      chrome.tabs.sendMessage(tab.id!, { type: 'STORAGE_UPDATED' }).catch(() => {})
-    }
-  }
-
-  chrome.storage.onChanged.addListener(changes => {
-    if (changes['watchly:videos']) pushStorageUpdate()
-  })
-
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'GET_YOUTUBE_TABS') {
       chrome.tabs
         .query({ url: '*://www.youtube.com/watch*' })
         .then(async tabs => {
-          const stored = await getStoredVideos()
+          const browser = detectBrowser()
 
-          const videos: YouTubeTabInfo[] = tabs
+          const convexTabs = tabs
             .map(tab => {
               const videoId = extractVideoId(tab.url ?? '')
               if (!videoId) return null
-
-              const existing = stored[videoId]
-              if (!existing) {
-                saveVideo({
-                  videoId,
-                  title: tab.title?.replace(' - YouTube', '') ?? 'Untitled',
-                  url: tab.url!,
-                  status: 'added',
-                  addedAt: Date.now(),
-                } as StoredVideo)
-              }
-
               return {
-                tabId: tab.id!,
                 videoId,
                 title: tab.title?.replace(' - YouTube', '') ?? 'Untitled',
                 url: tab.url!,
-                status: existing?.status ?? 'added',
+              }
+            })
+            .filter((t): t is { videoId: string; title: string; url: string } => t !== null)
+
+          await convexSyncBrowserTabs({ browser, tabs: convexTabs })
+
+          const allVideos = await convexListAll()
+          const allVideosMap = new Map((allVideos as { videoId: string; status: string }[]).map(v => [v.videoId, v]))
+
+          const openTabs = convexTabs
+            .map(tab => {
+              const videoId = extractVideoId(tab.url)
+              if (!videoId) return null
+              return {
+                tabId: 0,
+                videoId,
+                title: tab.title,
+                url: tab.url,
+                status: (allVideosMap.get(videoId)?.status as 'added' | 'watched') ?? 'added',
               }
             })
             .filter((v): v is YouTubeTabInfo => v !== null)
 
-          sendResponse({ videos })
+          sendResponse({ videos: openTabs })
         })
         .catch(() => sendResponse({ videos: [] }))
 
@@ -60,46 +59,28 @@ export default defineBackground(() => {
 
     if (message.type === 'GET_VIDEO_STATUS') {
       const videoId: string = message.videoId
-      getStoredVideo(videoId)
-        .then(async existing => {
+      convexGetByVideoId(videoId)
+        .then(existing => {
           if (existing) {
             sendResponse({ status: existing.status, title: existing.title })
-            return
+          } else {
+            sendResponse({ status: null })
           }
-
-          let title = 'Untitled'
-          if (sender.tab) {
-            title = sender.tab.title?.replace(' - YouTube', '') ?? title
-          }
-
-          await saveVideo({
-            videoId,
-            title,
-            url: sender.tab?.url ?? `https://www.youtube.com/watch?v=${videoId}`,
-            status: 'added',
-            addedAt: Date.now(),
-          } as StoredVideo)
-
-          sendResponse({ status: 'added', title })
         })
         .catch(() => sendResponse({ status: null }))
 
       return true
     }
 
-    if (message.type === 'TOGGLE_STATUS') {
-      const videoId: string = message.videoId
-      const current: string = message.current
-      const next = current === 'added' ? 'watched' : 'added'
-      updateVideoStatus(videoId, next as StoredVideo['status']).then(() => {
-        sendResponse({ status: next })
-      })
-      return true
-    }
-
     if (message.type === 'GET_ALL_VIDEOS') {
-      getStoredVideos()
-        .then(videos => sendResponse({ videos }))
+      convexListAll()
+        .then(videos => {
+          const map: Record<string, { status: string; title: string }> = {}
+          for (const v of videos as { videoId: string; status: string; title: string }[]) {
+            map[v.videoId] = { status: v.status, title: v.title }
+          }
+          sendResponse({ videos: map })
+        })
         .catch(() => sendResponse({ videos: {} }))
       return true
     }

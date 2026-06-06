@@ -1,17 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { YouTubeTabInfo } from '../../utils/types'
-import type { VideoStatus } from '../../utils/storage'
 import './App.css'
-
-const statusColors: Record<VideoStatus, string> = {
-  added: 'bg-[#3ea6ff] text-[#0f0f0f]',
-  watched: 'bg-[#2ba640] text-white',
-}
-
-const statusLabels: Record<VideoStatus, string> = {
-  added: 'Added',
-  watched: 'Watched',
-}
 
 function App() {
   const [videos, setVideos] = useState<YouTubeTabInfo[]>([])
@@ -27,11 +16,6 @@ function App() {
   useEffect(() => {
     fetchVideos()
   }, [fetchVideos])
-
-  async function toggleStatus(videoId: string, current: VideoStatus) {
-    await chrome.runtime.sendMessage({ type: 'TOGGLE_STATUS', videoId, current })
-    fetchVideos()
-  }
 
   return (
     <div className='flex max-h-[500px] flex-col bg-[#0f0f0f] text-[#f1f1f1]'>
@@ -50,13 +34,10 @@ function App() {
 
       <ul className='max-h-[450px] overflow-y-auto'>
         {videos.map(v => (
-          <li key={v.tabId} className='flex cursor-pointer gap-2.5 border-b border-[#272727] px-4 py-2.5 transition-colors hover:bg-[#272727]'>
+          <li key={v.tabId} className='flex gap-2.5 border-b border-[#272727] px-4 py-2.5'>
             <img className='h-[68px] w-[120px] shrink-0 rounded-lg object-cover' src={`https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg`} alt={v.title} />
-            <div className='flex min-w-0 flex-col justify-center gap-1.5'>
+            <div className='flex min-w-0 flex-col justify-center gap-1'>
               <p className='line-clamp-2 text-sm leading-tight'>{v.title}</p>
-              <button className={`inline-flex w-fit cursor-pointer items-center rounded-full border-none px-2.5 py-0.5 text-xs leading-[18px] font-semibold transition-opacity hover:opacity-80 ${statusColors[v.status ?? 'added']}`} onClick={() => toggleStatus(v.videoId, v.status ?? 'added')}>
-                {statusLabels[v.status ?? 'added']}
-              </button>
             </div>
           </li>
         ))}
