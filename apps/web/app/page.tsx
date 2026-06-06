@@ -36,7 +36,7 @@ function LoginScreen({ onLogin }: { onLogin: () => void }): ReactNode {
   }
 
   return (
-    <div className='bg-surface flex min-h-screen flex-col items-center justify-center px-6'>
+    <div className='bg-surface flex min-h-dvh flex-col items-center justify-center px-6'>
       <div className='animate-fade-up mb-8 flex flex-col items-center gap-4'>
         <div className='bg-blue/10 flex size-16 items-center justify-center rounded-2xl'>
           <EyeIcon />
@@ -106,8 +106,8 @@ export default function Home(): ReactNode {
   }
 
   return (
-    <div className='bg-surface flex min-h-screen flex-col'>
-      <main className='mx flex w-full max-w-3xl flex-1 flex-col self-center px-5 py-6'>
+    <div className='bg-surface flex min-h-dvh flex-col'>
+      <main className='mx flex w-full max-w-3xl flex-1 flex-col self-center px-5 py-6 pt-[calc(1.5rem+env(safe-area-inset-top))]'>
         {tab === 'settings' ? (
           <div className='flex flex-col gap-8 pb-24'>
             <div className='flex flex-col gap-1.5'>

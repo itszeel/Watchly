@@ -42,7 +42,7 @@ export default function BottomNav({ active, onTab }: Props): ReactNode {
   ]
 
   return (
-    <nav className='animate-fade-in fixed right-0 bottom-0 left-0 z-20 flex justify-center pt-2 pb-5'>
+    <nav className='animate-fade-in fixed right-0 bottom-0 left-0 z-20 flex justify-center pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))]'>
       <div className='border-glass-border flex items-center gap-0.5 rounded-3xl border bg-black/70 px-1.5 py-1 shadow-2xl shadow-black/50 backdrop-blur-[96px]'>
         {tabs.map(tab => (
           <button key={tab.key} onClick={() => onTab(tab.key)} className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${active === tab.key ? 'bg-white/10 text-white' : 'text-muted hover:text-text'}`}>
