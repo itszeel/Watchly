@@ -18,11 +18,13 @@ const DEFAULTS: FeatureSettings = {
 export function getFeatureSettings(): Promise<FeatureSettings> {
   return new Promise(resolve => {
     try {
-      chrome.storage.local.get(Object.values(FEATURE_KEYS), result => {
+      chrome.storage.local.get(Object.values(FEATURE_KEYS), (result: Record<string, unknown>) => {
         void chrome.runtime.lastError
+        const openVal = result[FEATURE_KEYS.openButton]
+        const speedVal = result[FEATURE_KEYS.shortsSpeed]
         resolve({
-          [FEATURE_KEYS.openButton]: result[FEATURE_KEYS.openButton] ?? DEFAULTS[FEATURE_KEYS.openButton],
-          [FEATURE_KEYS.shortsSpeed]: result[FEATURE_KEYS.shortsSpeed] ?? DEFAULTS[FEATURE_KEYS.shortsSpeed],
+          [FEATURE_KEYS.openButton]: typeof openVal === 'boolean' ? openVal : DEFAULTS[FEATURE_KEYS.openButton],
+          [FEATURE_KEYS.shortsSpeed]: typeof speedVal === 'boolean' ? speedVal : DEFAULTS[FEATURE_KEYS.shortsSpeed],
         })
       })
     } catch {

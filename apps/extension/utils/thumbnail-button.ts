@@ -8,6 +8,55 @@ const PREVIEW_ACTIVE_CLASS = 'ytdVideoPreviewActive'
 
 let featureEnabled = true
 
+// ─── SVG template (created once, cloned per button) ──────────────────────────
+
+let templateButton: HTMLButtonElement | null = null
+
+function getTemplateButton(): HTMLButtonElement {
+  if (templateButton) return templateButton
+
+  const button = document.createElement('button')
+  button.type = 'button'
+  button.className = BUTTON_CLASS
+  button.title = 'Open in new tab'
+  button.setAttribute('aria-label', 'Open video in new tab')
+
+  const svgNamespace = 'http://www.w3.org/2000/svg'
+  const svg = document.createElementNS(svgNamespace, 'svg')
+  svg.setAttribute('width', '14')
+  svg.setAttribute('height', '14')
+  svg.setAttribute('viewBox', '0 0 24 24')
+  svg.setAttribute('fill', 'none')
+  svg.setAttribute('stroke', 'currentColor')
+  svg.setAttribute('stroke-width', '2.5')
+  svg.setAttribute('stroke-linecap', 'round')
+  svg.setAttribute('stroke-linejoin', 'round')
+  svg.setAttribute('aria-hidden', 'true')
+
+  const path = document.createElementNS(svgNamespace, 'path')
+  path.setAttribute('d', 'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6')
+
+  const polyline = document.createElementNS(svgNamespace, 'polyline')
+  polyline.setAttribute('points', '15 3 21 3 21 9')
+
+  const line = document.createElementNS(svgNamespace, 'line')
+  line.setAttribute('x1', '10')
+  line.setAttribute('y1', '14')
+  line.setAttribute('x2', '21')
+  line.setAttribute('y2', '3')
+
+  svg.append(path, polyline, line)
+
+  const label = document.createElement('span')
+  label.textContent = 'Open'
+
+  button.append(svg, label)
+  templateButton = button
+  return button
+}
+
+// ─── Styles ──────────────────────────────────────────────────────────────────
+
 function ensureStyles() {
   if (document.getElementById(STYLE_ID)) return
 
@@ -52,67 +101,41 @@ function ensureStyles() {
       display: block;
       flex-shrink: 0;
     }
+
+    /* Ensure thumbnails are positioned so the absolute button works.
+       Uses :where() for zero specificity — won't override YouTube's own rules. */
+    :where(${THUMBNAIL_SELECTOR}) {
+      position: relative;
+    }
   `
 
   document.head.appendChild(style)
 }
 
+// ─── URL parsing ─────────────────────────────────────────────────────────────
+
+// Fast regex extraction instead of new URL() per thumbnail
+const WATCH_ID_RE = /[?&]v=([A-Za-z0-9_-]+)/
+const SHORTS_ID_RE = /\/shorts\/([A-Za-z0-9_-]+)/
+
 function buildVideoUrl(anchor: HTMLAnchorElement): string | null {
   const href = anchor.getAttribute('href')
   if (!href) return null
 
-  try {
-    const url = new URL(href, window.location.origin)
-    const videoId = url.searchParams.get('v')
-    if (videoId) return `https://www.youtube.com/watch?v=${videoId}`
+  const watchMatch = href.match(WATCH_ID_RE)
+  if (watchMatch) return `https://www.youtube.com/watch?v=${watchMatch[1]}`
 
-    const shortsMatch = url.pathname.match(/^\/shorts\/([A-Za-z0-9_-]+)/)
-    if (shortsMatch) return `https://www.youtube.com/shorts/${shortsMatch[1]}`
+  const shortsMatch = href.match(SHORTS_ID_RE)
+  if (shortsMatch) return `https://www.youtube.com/shorts/${shortsMatch[1]}`
 
-    return null
-  } catch {
-    return null
-  }
+  return null
 }
 
+// ─── Button creation ─────────────────────────────────────────────────────────
+
 function createButton(url: string): HTMLButtonElement {
-  const button = document.createElement('button')
-  button.type = 'button'
-  button.className = BUTTON_CLASS
-  button.title = 'Open in new tab'
-  button.setAttribute('aria-label', 'Open video in new tab')
+  const button = getTemplateButton().cloneNode(true) as HTMLButtonElement
   button.dataset.url = url
-
-  const svgNamespace = 'http://www.w3.org/2000/svg'
-  const svg = document.createElementNS(svgNamespace, 'svg')
-  svg.setAttribute('width', '14')
-  svg.setAttribute('height', '14')
-  svg.setAttribute('viewBox', '0 0 24 24')
-  svg.setAttribute('fill', 'none')
-  svg.setAttribute('stroke', 'currentColor')
-  svg.setAttribute('stroke-width', '2.5')
-  svg.setAttribute('stroke-linecap', 'round')
-  svg.setAttribute('stroke-linejoin', 'round')
-  svg.setAttribute('aria-hidden', 'true')
-
-  const path = document.createElementNS(svgNamespace, 'path')
-  path.setAttribute('d', 'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6')
-
-  const polyline = document.createElementNS(svgNamespace, 'polyline')
-  polyline.setAttribute('points', '15 3 21 3 21 9')
-
-  const line = document.createElementNS(svgNamespace, 'line')
-  line.setAttribute('x1', '10')
-  line.setAttribute('y1', '14')
-  line.setAttribute('x2', '21')
-  line.setAttribute('y2', '3')
-
-  svg.append(path, polyline, line)
-
-  const label = document.createElement('span')
-  label.textContent = 'Open'
-
-  button.append(svg, label)
 
   const stopPropagation = (event: Event) => event.stopPropagation()
 
@@ -151,15 +174,18 @@ function createPreviewButton(url: string, thumbnail: HTMLElement | null, preview
   return button
 }
 
+// ─── Preview handling ────────────────────────────────────────────────────────
+
 function getPreviewVideoUrl(preview: HTMLElement): string | null {
   const anchor = preview.querySelector<HTMLAnchorElement>(VIDEO_LINK_SELECTOR)
   return anchor ? buildVideoUrl(anchor) : null
 }
 
 function findThumbnailForPreview(url: string, preview: HTMLElement): HTMLElement | null {
-  if (lastHoveredThumbnail?.isConnected) {
-    const button = lastHoveredThumbnail.querySelector<HTMLButtonElement>(`:scope > .${BUTTON_CLASS}`)
-    if (button?.dataset.url === url) return lastHoveredThumbnail
+  const hovered = lastHoveredThumbnail?.deref()
+  if (hovered?.isConnected) {
+    const button = hovered.querySelector<HTMLButtonElement>(`:scope > .${BUTTON_CLASS}`)
+    if (button?.dataset.url === url) return hovered
   }
 
   const previewRect = preview.getBoundingClientRect()
@@ -225,10 +251,11 @@ function watchPreview() {
     attributes: true,
     attributeFilter: ['class'],
     childList: true,
-    subtree: true,
   })
   queuePreviewSync()
 }
+
+// ─── Thumbnail decoration ────────────────────────────────────────────────────
 
 function decorateThumbnail(thumbnail: HTMLElement) {
   const anchor = thumbnail.closest<HTMLAnchorElement>(VIDEO_LINK_SELECTOR) ?? thumbnail.querySelector<HTMLAnchorElement>(VIDEO_LINK_SELECTOR)
@@ -243,10 +270,7 @@ function decorateThumbnail(thumbnail: HTMLElement) {
     return
   }
 
-  if (window.getComputedStyle(thumbnail).position === 'static') {
-    thumbnail.style.position = 'relative'
-  }
-
+  // Position is now handled via CSS rule (:where selector in ensureStyles)
   thumbnail.appendChild(createButton(url))
 }
 
@@ -264,8 +288,12 @@ function scanThumbnails() {
   queuePreviewSync()
 }
 
+// ─── Scheduling & state ──────────────────────────────────────────────────────
+
 let scanQueued = false
-let lastHoveredThumbnail: HTMLElement | null = null
+// WeakRef prevents retaining detached DOM nodes when YouTube's virtual
+// scroller removes thumbnails that are scrolled off-screen.
+let lastHoveredThumbnail: WeakRef<HTMLElement> | null = null
 let previewObserver: MutationObserver | null = null
 let observedPreview: HTMLElement | null = null
 let previewSyncQueued = false
@@ -288,7 +316,7 @@ function queuePreviewSync() {
 }
 
 function queueScan() {
-  if (scanQueued) return
+  if (scanQueued || !featureEnabled) return
   scanQueued = true
 
   const run = () => {
@@ -303,6 +331,8 @@ function queueScan() {
   }
 }
 
+// ─── Init & lifecycle ────────────────────────────────────────────────────────
+
 export function initThumbnailButtons() {
   ensureStyles()
   scanThumbnails()
@@ -314,25 +344,19 @@ export function initThumbnailButtons() {
   document.addEventListener(
     'pointerover',
     event => {
+      if (!featureEnabled) return
+
       const target = event.target
       if (!(target instanceof Element)) return
 
       const thumbnail = target.closest<HTMLElement>(THUMBNAIL_SELECTOR)
       if (!thumbnail) return
 
-      lastHoveredThumbnail = thumbnail
+      lastHoveredThumbnail = new WeakRef(thumbnail)
       queuePreviewSync()
     },
     true
   )
-
-  new MutationObserver(() => {
-    watchPreview()
-    queueScan()
-  }).observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-  })
 }
 
 function removeAllButtons() {
@@ -352,4 +376,11 @@ export function enableThumbnailButtons() {
   featureEnabled = true
   ensureStyles()
   scanThumbnails()
+}
+
+/** Called by the consolidated MutationObserver in content.ts */
+export function onThumbnailDomMutated() {
+  if (!featureEnabled) return
+  watchPreview()
+  queueScan()
 }

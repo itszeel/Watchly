@@ -19,9 +19,14 @@ function App() {
 
   const fetchVideos = useCallback(async () => {
     setLoading(true)
-    const res = await chrome.runtime.sendMessage({ type: 'GET_YOUTUBE_TABS' })
-    setVideos(res.videos)
-    setLoading(false)
+    try {
+      const res = await chrome.runtime.sendMessage({ type: 'GET_YOUTUBE_TABS' })
+      setVideos(res?.videos ?? [])
+    } catch {
+      setVideos([])
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
@@ -79,9 +84,9 @@ function App() {
       )}
 
       <ul className='max-h-[450px] overflow-y-auto'>
-        {videos.map(v => (
-          <li key={v.tabId} className='flex gap-2.5 border-b border-[#272727] px-4 py-2.5'>
-            <img className='h-[68px] w-[120px] shrink-0 rounded-lg object-cover' src={`https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg`} alt={v.title} />
+        {videos.map((v, index) => (
+          <li key={`${v.videoId}-${v.tabId || index}`} className='flex gap-2.5 border-b border-[#272727] px-4 py-2.5'>
+            <img loading='lazy' decoding='async' className='h-[68px] w-[120px] shrink-0 rounded-lg object-cover' src={`https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg`} alt={v.title} />
             <div className='flex min-w-0 flex-col justify-center gap-1'>
               <p className='line-clamp-2 text-sm leading-tight'>{v.title}</p>
             </div>

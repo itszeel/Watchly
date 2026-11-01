@@ -14,6 +14,7 @@ let control: HTMLDivElement | null = null
 let menuOpen = false
 let lastHref = window.location.href
 let featureEnabled = true
+let navTimeoutIds: ReturnType<typeof setTimeout>[] = []
 
 function isShortsPage(): boolean {
   return window.location.pathname.startsWith('/shorts/')
@@ -283,6 +284,10 @@ function createControl(): HTMLDivElement {
 }
 
 function findActiveActionBar(): HTMLElement | null {
+  // Try O(1) query using YouTube's active reel marker to avoid forced reflows
+  const activeRendererBar = document.querySelector<HTMLElement>('ytd-reel-video-renderer[is-active] reel-action-bar-view-model')
+  if (activeRendererBar) return activeRendererBar
+
   const bars = Array.from(document.querySelectorAll<HTMLElement>(ACTION_BAR_SELECTOR))
   if (bars.length <= 1) return bars[0] ?? null
 
@@ -377,16 +382,19 @@ function handleNavigation() {
     setMenuOpen(false)
     ensureControl()
 
+    // Cancel any stale timeouts from a previous navigation
+    for (const id of navTimeoutIds) clearTimeout(id)
+    navTimeoutIds = []
+
     if (isShortsPage()) {
       // Shorts mounts the player asynchronously after the route changes.
-      window.setTimeout(applyToAllShortsVideos, 100)
-      window.setTimeout(applyToAllShortsVideos, 500)
-      window.setTimeout(applyToAllShortsVideos, 1500)
+      navTimeoutIds.push(setTimeout(applyToAllShortsVideos, 100), setTimeout(applyToAllShortsVideos, 500), setTimeout(applyToAllShortsVideos, 1500))
     }
     return
   }
 
-  queueControlSync()
+  // Only queue control sync on shorts pages — no-op elsewhere
+  if (isShortsPage()) queueControlSync()
 }
 
 function handleMediaEvent(event: Event) {
@@ -412,7 +420,7 @@ function watchMedia() {
 let controlSyncQueued = false
 
 function queueControlSync() {
-  if (controlSyncQueued) return
+  if (controlSyncQueued || !featureEnabled || !isShortsPage()) return
   controlSyncQueued = true
 
   const run = () => {
@@ -431,11 +439,6 @@ function watchNavigation() {
   document.addEventListener('yt-navigate-finish', handleNavigation)
   document.addEventListener('yt-page-data-updated', handleNavigation)
 
-  new MutationObserver(handleNavigation).observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-  })
-
   document.addEventListener(
     'pointerdown',
     event => {
@@ -448,12 +451,12 @@ function watchNavigation() {
     true
   )
 
-  // Safety net for player resets (ads, loops, route changes) and for pages
-  // where YouTube replaces the <video> element without firing a usable event.
-  window.setInterval(() => {
+  // Safety net for player resets (ads, loops) — gated to shorts pages
+  setInterval(() => {
+    if (!isShortsPage() || !featureEnabled) return
     handleNavigation()
     applyToAllShortsVideos()
-  }, 1000)
+  }, 2000)
 }
 
 export function initShortsSpeed() {
@@ -478,6 +481,8 @@ function resetVideoSpeeds() {
 
 export function disableShortsSpeed() {
   featureEnabled = false
+  for (const id of navTimeoutIds) clearTimeout(id)
+  navTimeoutIds = []
   control?.remove()
   control = null
   menuOpen = false
@@ -489,4 +494,10 @@ export function enableShortsSpeed() {
   featureEnabled = true
   ensureControl()
   applyToAllShortsVideos()
+}
+
+/** Called by the consolidated MutationObserver in content.ts */
+export function onShortsDomMutated() {
+  if (!featureEnabled || !isShortsPage()) return
+  handleNavigation()
 }
