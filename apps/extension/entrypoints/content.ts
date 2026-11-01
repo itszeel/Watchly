@@ -1,10 +1,12 @@
 import type { VideoStatus } from '../utils/types'
+import { initShortsSpeed } from '../utils/shorts-speed'
 import { initThumbnailButtons } from '../utils/thumbnail-button'
 
 export default defineContentScript({
   matches: ['*://www.youtube.com/*'],
   main() {
     initThumbnailButtons()
+    initShortsSpeed()
 
     function createChip(status: VideoStatus): HTMLDivElement {
       const chip = document.createElement('div')
