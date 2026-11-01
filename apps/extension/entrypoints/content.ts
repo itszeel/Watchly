@@ -1,8 +1,11 @@
 import type { VideoStatus } from '../utils/types'
+import { initThumbnailButtons } from '../utils/thumbnail-button'
 
 export default defineContentScript({
   matches: ['*://www.youtube.com/*'],
   main() {
+    initThumbnailButtons()
+
     function createChip(status: VideoStatus): HTMLDivElement {
       const chip = document.createElement('div')
       chip.id = 'watchly-chip'

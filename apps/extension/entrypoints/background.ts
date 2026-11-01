@@ -65,6 +65,14 @@ export default defineBackground(() => {
       return true
     }
 
+    if (message.type === 'OPEN_VIDEO_TAB') {
+      const url = typeof message.url === 'string' ? message.url : ''
+      if (/^https:\/\/www\.youtube\.com\/(?:watch\?v=|shorts\/)[A-Za-z0-9_-]+$/.test(url)) {
+        chrome.tabs.create({ url })
+      }
+      return
+    }
+
     if (message.type === 'GET_ALL_VIDEOS') {
       convexListAll()
         .then(videos => {
