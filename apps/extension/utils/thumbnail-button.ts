@@ -71,30 +71,33 @@ function ensureStyles() {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 7px 11px;
-      border: 0;
+      padding: 6px 11px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
       border-radius: 999px;
-      background: rgba(15, 15, 15, 0.85);
-      color: #fff;
+      background: rgba(18, 18, 22, 0.82);
+      color: #f4f4f5;
       font-family: Roboto, Arial, sans-serif;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       line-height: 1;
       letter-spacing: 0.2px;
       cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(4px);
-      transition: background 120ms ease, color 120ms ease, transform 120ms ease;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: background 150ms ease, color 150ms ease, border-color 150ms ease, transform 150ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms ease;
     }
 
     .${BUTTON_CLASS}:hover {
       background: #3ea6ff;
-      color: #0f0f0f;
-      transform: scale(1.05);
+      color: #0c0d0e;
+      border-color: #3ea6ff;
+      box-shadow: 0 4px 16px rgba(62, 166, 255, 0.45);
+      transform: scale(1.06);
     }
 
     .${BUTTON_CLASS}:active {
-      transform: scale(0.96);
+      transform: scale(0.95);
     }
 
     .${BUTTON_CLASS} svg {

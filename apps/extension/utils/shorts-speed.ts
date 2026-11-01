@@ -35,7 +35,7 @@ function ensureStyles() {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       font-family: Roboto, Arial, sans-serif;
       color: #fff;
       user-select: none;
@@ -54,6 +54,7 @@ function ensureStyles() {
       color: #fff;
       font: inherit;
       cursor: pointer;
+      outline: none;
     }
 
     #${CONTROL_ID} .watchly-speed-circle {
@@ -63,90 +64,170 @@ function ensureStyles() {
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(28, 28, 32, 0.8);
+      border: 1.5px solid rgba(255, 255, 255, 0.16);
       color: #fff;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-      transition: background 120ms ease, transform 120ms ease;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: all 180ms cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    #${CONTROL_ID} .watchly-speed-circle[data-active='true'] {
+      border-color: #3ea6ff;
+      background: rgba(18, 34, 52, 0.85);
+      color: #3ea6ff;
+      box-shadow: 0 0 14px rgba(62, 166, 255, 0.4), 0 3px 12px rgba(0, 0, 0, 0.4);
     }
 
     #${CONTROL_ID} .watchly-speed-trigger:hover .watchly-speed-circle {
-      background: rgba(255, 255, 255, 0.2);
-      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.24);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: scale(1.08);
+    }
+
+    #${CONTROL_ID} .watchly-speed-trigger:hover .watchly-speed-circle[data-active='true'] {
+      background: rgba(62, 166, 255, 0.28);
+      border-color: #3ea6ff;
     }
 
     #${CONTROL_ID} .watchly-speed-trigger:active .watchly-speed-circle {
-      transform: scale(0.95);
+      transform: scale(0.94);
     }
 
     #${CONTROL_ID} .watchly-speed-value {
       font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
       line-height: 1;
     }
 
     #${CONTROL_ID} .watchly-speed-label {
-      color: #fff;
-      font-size: 12px;
+      color: #f1f1f1;
+      font-size: 11.5px;
       font-weight: 500;
       line-height: 1.2;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
     }
 
     #${CONTROL_ID} .watchly-speed-menu {
       position: absolute;
       top: 50%;
-      right: calc(100% + 12px);
+      right: calc(100% + 14px);
       z-index: 2147483647;
-      width: 196px;
-      padding: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      background: rgba(28, 28, 28, 0.98);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-      display: none;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 4px;
-      transform: translateY(-50%);
+      width: 218px;
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 18px;
+      background: rgba(18, 18, 22, 0.96);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transform: translateY(-50%) scale(0.94);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms cubic-bezier(0.16, 1, 0.3, 1), visibility 160ms;
     }
 
     #${CONTROL_ID}[data-open='true'] .watchly-speed-menu {
-      display: grid;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(-50%) scale(1);
     }
 
-    #${CONTROL_ID} .watchly-speed-menu-title {
-      grid-column: 1 / -1;
-      padding: 4px 6px 6px;
-      color: #aaa;
+    #${CONTROL_ID} .watchly-speed-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 4px 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 2px;
+    }
+
+    #${CONTROL_ID} .watchly-speed-header-left {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #a1a1aa;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 0.6px;
       text-transform: uppercase;
+    }
+
+    #${CONTROL_ID} .watchly-speed-reset-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #a1a1aa;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 120ms ease;
+    }
+
+    #${CONTROL_ID} .watchly-speed-reset-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    #${CONTROL_ID} .watchly-speed-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px;
     }
 
     #${CONTROL_ID} .watchly-speed-option {
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 4px;
       width: 100%;
-      padding: 7px 6px;
-      border: 0;
-      border-radius: 8px;
-      background: transparent;
-      color: #f1f1f1;
-      font: 500 13px/1.2 Roboto, Arial, sans-serif;
+      height: 34px;
+      padding: 0 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #e4e4e7;
+      font: 600 13px/1 Roboto, Arial, sans-serif;
       text-align: center;
       cursor: pointer;
+      transition: all 120ms ease;
     }
 
     #${CONTROL_ID} .watchly-speed-option:hover {
-      background: #303030;
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    #${CONTROL_ID} .watchly-speed-option:active {
+      transform: scale(0.96);
     }
 
     #${CONTROL_ID} .watchly-speed-option[aria-selected='true'] {
-      background: rgba(62, 166, 255, 0.16);
-      color: #3ea6ff;
-      font-weight: 700;
+      background: #3ea6ff;
+      color: #0c0d0e;
+      border-color: #3ea6ff;
+      font-weight: 800;
+      box-shadow: 0 2px 10px rgba(62, 166, 255, 0.45);
+    }
+
+    #${CONTROL_ID} .watchly-speed-tag {
+      font-size: 9px;
+      opacity: 0.75;
+      font-weight: 500;
+      margin-left: 2px;
     }
   `
 
@@ -181,6 +262,15 @@ function updateControl() {
 
   const value = control.querySelector<HTMLElement>('.watchly-speed-value')
   if (value) value.textContent = formatSpeed(desiredSpeed)
+
+  const circle = control.querySelector<HTMLElement>('.watchly-speed-circle')
+  if (circle) {
+    if (desiredSpeed !== 1) {
+      circle.setAttribute('data-active', 'true')
+    } else {
+      circle.removeAttribute('data-active')
+    }
+  }
 
   const trigger = control.querySelector<HTMLButtonElement>('.watchly-speed-trigger')
   if (trigger) {
@@ -229,17 +319,45 @@ function createControl(): HTMLDivElement {
   trigger.className = 'watchly-speed-trigger'
   trigger.setAttribute('aria-haspopup', 'listbox')
   trigger.setAttribute('aria-expanded', 'false')
-  trigger.innerHTML = `<span class="watchly-speed-circle"><span class="watchly-speed-value">${formatSpeed(desiredSpeed)}</span></span><span class="watchly-speed-label">Speed</span>`
+  trigger.innerHTML = `<span class="watchly-speed-circle" ${desiredSpeed !== 1 ? 'data-active="true"' : ''}><span class="watchly-speed-value">${formatSpeed(desiredSpeed)}</span></span><span class="watchly-speed-label">Speed</span>`
 
   const menu = document.createElement('div')
   menu.className = 'watchly-speed-menu'
   menu.setAttribute('role', 'listbox')
   menu.setAttribute('aria-label', 'Playback speed')
 
-  const menuTitle = document.createElement('div')
-  menuTitle.className = 'watchly-speed-menu-title'
-  menuTitle.textContent = 'Playback speed'
-  menu.appendChild(menuTitle)
+  // Header with title and quick 1x reset button
+  const header = document.createElement('div')
+  header.className = 'watchly-speed-header'
+
+  const headerLeft = document.createElement('div')
+  headerLeft.className = 'watchly-speed-header-left'
+  headerLeft.innerHTML = `
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+    <span>Playback Speed</span>
+  `
+
+  const resetBtn = document.createElement('button')
+  resetBtn.type = 'button'
+  resetBtn.className = 'watchly-speed-reset-btn'
+  resetBtn.title = 'Reset to 1x normal speed'
+  resetBtn.textContent = '1x Normal'
+  resetBtn.addEventListener('click', event => {
+    event.preventDefault()
+    event.stopPropagation()
+    setSpeed(1)
+    setMenuOpen(false)
+    trigger.focus()
+  })
+
+  header.append(headerLeft, resetBtn)
+  menu.appendChild(header)
+
+  // 2-column speed option grid
+  const grid = document.createElement('div')
+  grid.className = 'watchly-speed-grid'
 
   SPEED_OPTIONS.forEach(speed => {
     const option = document.createElement('button')
@@ -247,7 +365,15 @@ function createControl(): HTMLDivElement {
     option.className = 'watchly-speed-option'
     option.setAttribute('role', 'option')
     option.dataset.speed = String(speed)
-    option.textContent = formatSpeed(speed)
+
+    let innerContent = `<span>${formatSpeed(speed)}</span>`
+    if (speed === 1) {
+      innerContent += `<span class="watchly-speed-tag">Norm</span>`
+    } else if (speed === 2) {
+      innerContent += `<span class="watchly-speed-tag">Fast</span>`
+    }
+    option.innerHTML = innerContent
+
     option.addEventListener('click', event => {
       event.preventDefault()
       event.stopPropagation()
@@ -255,8 +381,10 @@ function createControl(): HTMLDivElement {
       setMenuOpen(false)
       trigger.focus()
     })
-    menu.appendChild(option)
+    grid.appendChild(option)
   })
+
+  menu.appendChild(grid)
 
   trigger.addEventListener('click', event => {
     event.preventDefault()
