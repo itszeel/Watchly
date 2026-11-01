@@ -13,6 +13,7 @@ let desiredSpeed = DEFAULT_SPEED
 let control: HTMLDivElement | null = null
 let menuOpen = false
 let lastHref = window.location.href
+let featureEnabled = true
 
 function isShortsPage(): boolean {
   return window.location.pathname.startsWith('/shorts/')
@@ -170,7 +171,7 @@ function applySpeed(video: HTMLVideoElement) {
 }
 
 function applyToAllShortsVideos() {
-  if (!isShortsPage()) return
+  if (!isShortsPage() || !featureEnabled) return
   getShortsVideos().forEach(applySpeed)
 }
 
@@ -308,7 +309,7 @@ function findActiveActionBar(): HTMLElement | null {
 }
 
 function ensureControl() {
-  if (!isShortsPage()) {
+  if (!isShortsPage() || !featureEnabled) {
     control?.remove()
     control = null
     menuOpen = false
@@ -389,7 +390,7 @@ function handleNavigation() {
 }
 
 function handleMediaEvent(event: Event) {
-  if (!isShortsPage()) return
+  if (!isShortsPage() || !featureEnabled) return
 
   const target = event.target
   if (!(target instanceof HTMLVideoElement)) return
@@ -460,6 +461,32 @@ export function initShortsSpeed() {
   watchStorage()
   watchMedia()
   watchNavigation()
+  ensureControl()
+  applyToAllShortsVideos()
+}
+
+function resetVideoSpeeds() {
+  getShortsVideos().forEach(video => {
+    try {
+      video.playbackRate = 1
+      video.defaultPlaybackRate = 1
+    } catch {
+      // ignore
+    }
+  })
+}
+
+export function disableShortsSpeed() {
+  featureEnabled = false
+  control?.remove()
+  control = null
+  menuOpen = false
+  document.getElementById(STYLE_ID)?.remove()
+  resetVideoSpeeds()
+}
+
+export function enableShortsSpeed() {
+  featureEnabled = true
   ensureControl()
   applyToAllShortsVideos()
 }

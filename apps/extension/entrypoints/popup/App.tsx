@@ -1,10 +1,21 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { YouTubeTabInfo } from '../../utils/types'
+import { FEATURE_KEYS, getFeatureSettings, setFeatureSetting } from '../../utils/feature-storage'
 import './App.css'
+
+function ToggleSwitch({ enabled, onToggle }: { enabled: boolean; onToggle: (v: boolean) => void }) {
+  return (
+    <button type='button' role='switch' aria-checked={enabled} onClick={() => onToggle(!enabled)} className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${enabled ? 'bg-[#3ea6ff]' : 'bg-[#555]'}`}>
+      <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform duration-200 ${enabled ? 'translate-x-[18px]' : 'translate-x-[3px]'}`} />
+    </button>
+  )
+}
 
 function App() {
   const [videos, setVideos] = useState<YouTubeTabInfo[]>([])
   const [loading, setLoading] = useState(true)
+  const [openButtonEnabled, setOpenButtonEnabled] = useState(true)
+  const [shortsSpeedEnabled, setShortsSpeedEnabled] = useState(true)
 
   const fetchVideos = useCallback(async () => {
     setLoading(true)
@@ -15,7 +26,21 @@ function App() {
 
   useEffect(() => {
     fetchVideos()
+    getFeatureSettings().then(settings => {
+      setOpenButtonEnabled(settings[FEATURE_KEYS.openButton])
+      setShortsSpeedEnabled(settings[FEATURE_KEYS.shortsSpeed])
+    })
   }, [fetchVideos])
+
+  const handleToggleOpenButton = async (enabled: boolean) => {
+    setOpenButtonEnabled(enabled)
+    await setFeatureSetting(FEATURE_KEYS.openButton, enabled)
+  }
+
+  const handleToggleShortsSpeed = async (enabled: boolean) => {
+    setShortsSpeedEnabled(enabled)
+    await setFeatureSetting(FEATURE_KEYS.shortsSpeed, enabled)
+  }
 
   return (
     <div className='flex max-h-[500px] flex-col bg-[#0f0f0f] text-[#f1f1f1]'>
@@ -23,6 +48,27 @@ function App() {
         <h1 className='text-lg font-bold'>Watchly</h1>
         <span className='text-xs text-[#aaa]'>{loading ? '...' : `${videos.length} video${videos.length !== 1 ? 's' : ''}`}</span>
       </header>
+
+      {/* Feature Toggles */}
+      <div className='border-b border-[#272727] px-4 py-3'>
+        <p className='mb-2.5 text-xs font-semibold tracking-wider text-[#888] uppercase'>Features</p>
+
+        <div className='flex items-center justify-between py-1.5'>
+          <div className='flex flex-col gap-0.5'>
+            <span className='text-sm font-medium'>Open Button</span>
+            <span className='text-[11px] text-[#888]'>Show open-in-new-tab button on thumbnails</span>
+          </div>
+          <ToggleSwitch enabled={openButtonEnabled} onToggle={handleToggleOpenButton} />
+        </div>
+
+        <div className='flex items-center justify-between py-1.5'>
+          <div className='flex flex-col gap-0.5'>
+            <span className='text-sm font-medium'>Shorts Speed</span>
+            <span className='text-[11px] text-[#888]'>Speed control for YouTube Shorts</span>
+          </div>
+          <ToggleSwitch enabled={shortsSpeedEnabled} onToggle={handleToggleShortsSpeed} />
+        </div>
+      </div>
 
       {loading && <p className='px-4 py-6 text-center text-[#888]'>Scanning YouTube tabs...</p>}
 

@@ -6,6 +6,8 @@ const VIDEO_LINK_SELECTOR = 'a[href*="/watch?v="], a[href*="/shorts/"]'
 const PREVIEW_SELECTOR = 'ytd-video-preview'
 const PREVIEW_ACTIVE_CLASS = 'ytdVideoPreviewActive'
 
+let featureEnabled = true
+
 function ensureStyles() {
   if (document.getElementById(STYLE_ID)) return
 
@@ -249,6 +251,8 @@ function decorateThumbnail(thumbnail: HTMLElement) {
 }
 
 function scanThumbnails() {
+  if (!featureEnabled) return
+
   document.querySelectorAll<HTMLElement>(THUMBNAIL_SELECTOR).forEach(thumbnail => {
     try {
       decorateThumbnail(thumbnail)
@@ -329,4 +333,23 @@ export function initThumbnailButtons() {
     childList: true,
     subtree: true,
   })
+}
+
+function removeAllButtons() {
+  document.querySelectorAll<HTMLElement>(`.${BUTTON_CLASS}`).forEach(btn => btn.remove())
+  document.querySelector<HTMLElement>(`#${STYLE_ID}`)?.remove()
+
+  const preview = document.querySelector<HTMLElement>(PREVIEW_SELECTOR)
+  preview?.querySelector<HTMLElement>(':scope > [data-watchly-preview-button]')?.remove()
+}
+
+export function disableThumbnailButtons() {
+  featureEnabled = false
+  removeAllButtons()
+}
+
+export function enableThumbnailButtons() {
+  featureEnabled = true
+  ensureStyles()
+  scanThumbnails()
 }

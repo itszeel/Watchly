@@ -1,12 +1,78 @@
 import type { VideoStatus } from '../utils/types'
-import { initShortsSpeed } from '../utils/shorts-speed'
-import { initThumbnailButtons } from '../utils/thumbnail-button'
+import { initShortsSpeed, disableShortsSpeed, enableShortsSpeed } from '../utils/shorts-speed'
+import { initThumbnailButtons, disableThumbnailButtons, enableThumbnailButtons } from '../utils/thumbnail-button'
+import { FEATURE_KEYS, getFeatureSettings } from '../utils/feature-storage'
 
 export default defineContentScript({
   matches: ['*://www.youtube.com/*'],
   main() {
-    initThumbnailButtons()
-    initShortsSpeed()
+    let thumbnailInitialized = false
+    let shortsSpeedInitialized = false
+
+    async function bootstrapFeatures() {
+      const settings = await getFeatureSettings()
+
+      if (settings[FEATURE_KEYS.openButton]) {
+        if (!thumbnailInitialized) {
+          initThumbnailButtons()
+          thumbnailInitialized = true
+        } else {
+          enableThumbnailButtons()
+        }
+      } else if (thumbnailInitialized) {
+        disableThumbnailButtons()
+      }
+
+      if (settings[FEATURE_KEYS.shortsSpeed]) {
+        if (!shortsSpeedInitialized) {
+          initShortsSpeed()
+          shortsSpeedInitialized = true
+        } else {
+          enableShortsSpeed()
+        }
+      } else if (shortsSpeedInitialized) {
+        disableShortsSpeed()
+      }
+    }
+
+    bootstrapFeatures()
+
+    // React to toggle changes from the popup in real time
+    try {
+      chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName !== 'local') return
+
+        if (changes[FEATURE_KEYS.openButton]) {
+          const enabled = changes[FEATURE_KEYS.openButton].newValue
+          if (enabled === false) {
+            disableThumbnailButtons()
+          } else {
+            if (!thumbnailInitialized) {
+              initThumbnailButtons()
+              thumbnailInitialized = true
+            } else {
+              enableThumbnailButtons()
+            }
+          }
+        }
+
+        if (changes[FEATURE_KEYS.shortsSpeed]) {
+          const enabled = changes[FEATURE_KEYS.shortsSpeed].newValue
+          if (enabled === false) {
+            disableShortsSpeed()
+          } else {
+            if (!shortsSpeedInitialized) {
+              initShortsSpeed()
+              shortsSpeedInitialized = true
+            } else {
+              enableShortsSpeed()
+            }
+          }
+        }
+      })
+    } catch {
+      // Storage events unavailable after extension reload
+    }
 
     function createChip(status: VideoStatus): HTMLDivElement {
       const chip = document.createElement('div')
