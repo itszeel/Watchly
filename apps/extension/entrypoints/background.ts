@@ -95,7 +95,22 @@ export default defineBackground(() => {
     if (message.type === 'OPEN_VIDEO_TAB') {
       const url = typeof message.url === 'string' ? message.url : ''
       if (/^https:\/\/www\.youtube\.com\/(?:watch\?v=|shorts\/)[A-Za-z0-9_-]+$/.test(url)) {
-        chrome.tabs.create({ url })
+        const createProperties: chrome.tabs.CreateProperties = {
+          url,
+          active: false,
+        }
+        if (typeof sender.tab?.windowId === 'number') {
+          createProperties.windowId = sender.tab.windowId
+        }
+        if (typeof sender.tab?.id === 'number') {
+          createProperties.openerTabId = sender.tab.id
+        }
+        if (typeof sender.tab?.index === 'number') {
+          createProperties.index = sender.tab.index + 1
+        }
+        chrome.tabs.create(createProperties).catch(() => {
+          chrome.tabs.create({ url, active: false }).catch(() => {})
+        })
       }
       return
     }
